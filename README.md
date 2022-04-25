@@ -1,2 +1,2 @@
-# My-Qtile-Config
+# My Qtile Config
 Just my qtile configuration.
