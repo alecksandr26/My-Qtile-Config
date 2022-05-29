@@ -10,21 +10,19 @@
    '("78e6be576f4a526d212d5f9a8798e5706990216e9be10174e3f3b015b8662e27" default))
  '(menu-bar-mode nil)
  '(menu-prompting nil)
- '(package-archives
-   '(("gnu" . "https://elpa.gnu.org/packages/")
-	 ("melpa" . "https://melpa.org/packages/")))
  '(package-selected-packages
-   '(projectile ac-html company auctex pdf-tools csharp-mode sublimity minimap monokai-theme))
+   '(cython-mode multi-vterm projectile iedit yasnippet-snippets yasnippet auto-complete-c-headers auto-complete company))
  '(scroll-bar-mode nil)
+ '(tab-width 4)
  '(tool-bar-mode nil))
-(custom-set-faces
- ;; custom-set-faces was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- )
+
+
+;; To hide the started screen of emacs
+(setq inhibit-startup-screen t)
+
+
 (defun fontify-frame (frame)
-  (set-frame-parameter frame 'font "Source Code Pro SemiBold-11"))
+  (set-frame-parameter frame 'font "Source Code Pro SemiBold-10"))
 ;; Fontify current frame
 (fontify-frame nil)
 ;; Fontify any future frames
@@ -32,11 +30,15 @@
 
 (add-hook 'prog-mode-hook 'display-line-numbers-mode)
 
+
+;; To make more slower the mouse scroll
+(setq mouse-wheel-progressive-speed nil)
+
+
 ;; To manipulate the idetnation
 (setq-default indent-tabs-mode nil)
 (setq-default tab-width 4) ; Assuming you want your tabs to be four spaces wide
-(custom-set-variables
- '(tab-width 4))
+
 (defvaralias 'c-basic-offset 'tab-width)
 (setq c-guess-make-basic-offset t)
 (setq c-guess-guessed-basic-offset-verbose nil)
@@ -45,110 +47,82 @@
 (setq python-indent-guess-indent-offset t)
 (setq python-indent-guess-indent-offset-verbose nil)
 
-;; To delete the highlights
-(setq-default show-paren-mode nil)
-(setq-default show-paren-delay 0)
 
+;; Desactivate the backup files
+(setq make-backup-files nil)
+(setq auto-save-default nil) ; stop creating #autosave# files
+(put 'erase-buffer 'disabled nil)
+(custom-set-faces
+ ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ )
 
-;; To enable column numbers
-(setq line-number-mode t)
-(setq column-number-mode t)
-
+;; Load the monokai theme
+(add-to-list 'custom-theme-load-path "~/.emacs.d/themes/")
+(load-theme 'monokai t)
 
 ;; To autocomplete brackets
 (electric-pair-mode)
 
+;; start package.el with emacs
+(require 'package)
+;; add MELPA to repository list
+(add-to-list 'package-archives
+             '("melpa" . "https://melpa.org/packages/"))
+;; initialize package.el
+(package-initialize)
 
-;; To hide the started screen of emacs 
-(setq inhibit-startup-screen t)
-
-;; To add the smoth minimap
-(add-to-list 'load-path "/path/to/.emacs.d/sublimity/")
-(require 'sublimity)
-(require 'sublimity-scroll)
-(require 'sublimity-map)
-
-;; To disable the backups files
-(setq make-backup-files nil)
-(setq create-lockfiles nil)
-(setq auto-save-default nil)
-
-;; To enable the autocomplete
-(require 'use-package)
-
-;; To be able to use pdf 
-(use-package pdf-tools
-   :pin manual
-   :config
-   (pdf-tools-install)
-   (setq-default pdf-view-display-size 'fit-width)
-   (define-key pdf-view-mode-map (kbd "C-s") 'isearch-forward)
-   :custom
-   (pdf-annot-activate-created-annotations t "automatically annotate highlights"))
-
-(setq TeX-view-program-selection '((output-pdf "PDF Tools"))
-      TeX-view-program-list '(("PDF Tools" TeX-pdf-tools-sync-view))
-      TeX-source-correlate-start-server t)
-
-(add-hook 'TeX-after-compilation-finished-functions
-          #'TeX-revert-document-buffer)
-
-;; To disable the control z
-(global-set-key (kbd "C-z") 'undo)
+;; Here I start my packages
 
 
 
-;; To rewrite a buffer or file name
-;; source: http://steve.yegge.googlepages.com/my-dot-emacs-file
-(defun rename-file-and-buffer (new-name)
-  "Renames both current buffer and file it's visiting to NEW-NAME."
-  (interactive "sNew name: ")
-  (let ((name (buffer-name))
-        (filename (buffer-file-name)))
-    (if (not filename)
-        (message "Buffer '%s' is not visiting a file!" name)
-      (if (get-buffer new-name)
-          (message "A buffer named '%s' already exists!" new-name)
-        (progn
-          (rename-file filename new-name 1)
-          (rename-buffer new-name)
-          (set-visited-file-name new-name)
-          (set-buffer-modified-p nil))))))
+;; start auto-complete
+(require 'auto-complete)
+;; do default config for auto-compelte
+(require 'auto-complete-config)
+(ac-config-default)
 
-;; Here we add the short cut
-(global-set-key (kbd "C-x r")  #'rename-file-and-buffer)
+;; To active the company
+;; (add-hook 'after-init-hook 'global-company-mode)
+
+(add-to-list 'load-path "~/.emacs.d/plugins/yasnippet")
+(require 'yasnippet)
+
+(yas-global-mode 1)
+
+;; define iedit variable
+(define-key global-map (kbd "C-x ;") 'iedit-mode)
 
 
-;; To put able the autocomplete
-(add-hook 'after-init-hook 'global-company-mode)
+;; Lets start projectile
+(projectile-mode 1)
+(define-key projectile-mode-map (kbd "C-c p") 'projectile-command-map)
+
+;; my projects paths
+(setq projectile-project-search-path '("~/Documents/projects/"))
 
 
-;; To make more slower the mouse scroll 
-(setq mouse-wheel-progressive-speed nil)
+;; start neotree
+(add-to-list 'load-path "~/.emacs.d/neotree/neotree")
+(require 'neotree)
+(global-set-key [f8] 'neotree-toggle)
+
+
+;; adding vterm
+(add-to-list 'load-path "~/.emacs.d/emacs-libvterm")
+(require 'vterm)
 
 
 
-;; To autocomplete html
-(defun setup-ac-for-haml ()
-  ;; Require ac-haml since we are setup haml auto completion
-  (require 'ac-haml)
-  ;; Require default data provider if you want to use
-  (require 'ac-html-default-data-provider)
-  ;; Enable data providers,
-  ;; currently only default data provider available
-  (ac-html-enable-data-provider 'ac-html-default-data-provider)
-  ;; Let ac-haml do some setup
-  (ac-haml-setup)
-  ;; Set your ac-source
-  (setq ac-sources '(ac-source-haml-tag
-                     ac-source-haml-attr
-                     ac-source-haml-attrv))
-  ;; Enable auto complete mode
-  (auto-complete-mode))
-
-(add-hook 'haml-mode-hook 'setup-ac-for-haml)
-
-;; Transparency
-(set-frame-parameter (selected-frame) 'alpha '(80 . 80))
-(add-to-list 'default-frame-alist '(alpha . (80 . 80)))
+;; lets define the auto-complete-c-headers 
+(defun my:ac-c-headers-init ()
+  (require 'auto-complete-c-headers)
+  (add-to-list 'ac-sources 'ac-source-c-headers)
+  (add-to-list 'achead:include-directories '"/usr/local/include")
+  )
+;; now lets call this function
+(add-hook 'c++-mode-hook 'my:ac-c-headers-init)
+(add-hook 'c-mode-hook 'my:ac-c-headers-init)
 
